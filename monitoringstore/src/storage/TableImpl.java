@@ -20,10 +20,12 @@ public class TableImpl implements Table {
 		this.keyIndex = new HashMap<String, ArrayList<KeyValue>>();
 	}
 
+	@Override
 	public int getNumCol() {
 		return numCol;
 	}
 
+	@Override
 	public String getName() {
 		return name;
 	}
@@ -66,10 +68,10 @@ public class TableImpl implements Table {
 		KeyValue current = null;
 		for(int i = keyValues.size()-1; i >= 0; i--){
 			current = keyValues.get(i);
-			if(current.getTimestamp().before(timestamp))
+			if(current.getTimestamp().compareTo(timestamp) <= 0)
 				return current;
 		}
 		
-		throw null;
+		return null;
 	}
 }

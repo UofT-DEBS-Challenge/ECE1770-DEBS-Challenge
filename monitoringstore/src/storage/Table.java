@@ -11,4 +11,7 @@ public interface Table {
 
 	public KeyValue get(String key, Timestamp timestamp) throws KeyNotFoundException, TimestampNotFoundException;
 
+	public int getNumCol();
+	
+	public String getName();
 }
