@@ -3,7 +3,10 @@ package storage;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Vector;
 
+import storage.exceptions.InsertOutOfOrderException;
 import storage.exceptions.KeyNotFoundException;
 import storage.exceptions.TimestampNotFoundException;
 
@@ -31,12 +34,15 @@ public class TableImpl implements Table {
 	}
 
 	@Override
-	public void insert(String key, String value, Timestamp timestamp) {
+	public void insert(String key, String value, Timestamp timestamp) throws InsertOutOfOrderException {
 		ArrayList<KeyValue> keyValues = keyIndex.get(key);
 		
 		if(keyValues == null){
 			keyValues = new ArrayList<KeyValue>();
 			keyIndex.put(key, keyValues);
+		} else {
+			if(timestamp.compareTo(keyValues.get(keyValues.size()-1).getTimestamp()) < 0)
+				throw new InsertOutOfOrderException(key, value, timestamp, keyValues.get(keyValues.size()-1).getTimestamp());
 		}
 		
 		keyValues.add(new KeyValue(value, timestamp));
@@ -64,6 +70,18 @@ public class TableImpl implements Table {
 		}
 	}
 
+	@Override
+	public List<KeyValue> scan(String key, Timestamp start, Timestamp end) throws KeyNotFoundException {
+		
+		ArrayList<KeyValue> keyValues = keyIndex.get(key);
+		
+		if(keyValues == null){
+			throw new KeyNotFoundException(name, key);
+		}
+		
+		return search(keyValues, start, end);		
+	}
+	
 	private KeyValue search(ArrayList<KeyValue> keyValues, Timestamp timestamp) {
 		KeyValue current = null;
 		for(int i = keyValues.size()-1; i >= 0; i--){
@@ -74,4 +92,34 @@ public class TableImpl implements Table {
 		
 		return null;
 	}
+
+	private List<KeyValue> search(ArrayList<KeyValue> keyValues,
+			Timestamp start, Timestamp end) {
+		
+		if(start == null){
+			start = new Timestamp(0);
+		}
+		
+		if(end == null){
+			end = new Timestamp(Long.MAX_VALUE);
+		}
+		
+		Vector<KeyValue> resultValues = new Vector<KeyValue>();
+		
+		KeyValue current = null;
+		for(int i = keyValues.size()-1; i >= 0; i--){
+			current = keyValues.get(i);
+						
+			if(current.getTimestamp().compareTo(start) < 0){
+				break;
+			}
+			
+			if(current.getTimestamp().compareTo(end) <= 0){
+				resultValues.add(current);
+			}
+		}
+		
+		return resultValues;
+	}
+
 }

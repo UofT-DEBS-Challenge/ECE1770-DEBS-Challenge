@@ -12,6 +12,7 @@ import org.junit.Test;
 
 import storage.Table;
 import storage.TableImpl;
+import storage.exceptions.InsertOutOfOrderException;
 import storage.exceptions.KeyNotFoundException;
 import storage.exceptions.TimestampNotFoundException;
 
@@ -48,7 +49,11 @@ public class TableTest {
 	
 	@Test
 	public void testSimpleInsertAndGet(){
-		table.insert("key1", "v1,v2", new Timestamp(new Date().getTime()));
+		try {
+			table.insert("key1", "v1,v2", new Timestamp(new Date().getTime()));
+		} catch (InsertOutOfOrderException e) {
+			fail(e.toString());
+		}
 		
 		try {
 			assertEquals("key1 value should be", "v1,v2", table.get("key1", null).getValue());
@@ -61,13 +66,21 @@ public class TableTest {
 
 	@Test
 	public void testNullGet(){
-		table.insert("key1", "v1,v2", new Timestamp(new Date().getTime()));
+		try {
+			table.insert("key1", "v1,v2", new Timestamp(new Date().getTime()));
+		} catch (InsertOutOfOrderException e) {
+			fail(e.toString());
+		}
 				
 		try {
 			Thread.sleep(5);
 		} catch (InterruptedException e1) {	}
 		
-		table.insert("key1", "v2,v3", new Timestamp(new Date().getTime()));
+		try {
+			table.insert("key1", "v2,v3", new Timestamp(new Date().getTime()));
+		} catch (InsertOutOfOrderException e) {
+			fail(e.toString());
+		}
 		
 		try {
 			assertEquals("key1 value should be", "v2,v3", table.get("key1", null).getValue());
@@ -88,7 +101,11 @@ public class TableTest {
 		
 		Timestamp ts1b = new Timestamp(new Date().getTime());
 		
-		table.insert("key1", "v1,v2", ts1);
+		try {
+			table.insert("key1", "v1,v2", ts1);
+		} catch (InsertOutOfOrderException e) {
+			fail(e.toString());
+		}
 				
 		try {
 			Thread.sleep(5);
@@ -102,7 +119,11 @@ public class TableTest {
 		
 		Timestamp ts2b = new Timestamp(new Date().getTime());
 		
-		table.insert("key1", "v2,v3", ts2);
+		try {
+			table.insert("key1", "v2,v3", ts2);
+		} catch (InsertOutOfOrderException e) {
+			fail(e.toString());
+		}
 		
 		try {
 			assertEquals("key1 value should be", "v1,v2", table.get("key1", ts1).getValue());
@@ -113,6 +134,71 @@ public class TableTest {
 			fail("key1 should be found");
 		} catch (TimestampNotFoundException e) {
 			fail("Timestamp should return a value");
+		}
+	}
+	
+	@Test
+	public void testScan() throws Exception{
+		Timestamp ts0 = new Timestamp(new Date().getTime());
+		
+		try {
+			Thread.sleep(5);
+		} catch (InterruptedException e1) {	}
+		
+		Timestamp ts0b = new Timestamp(new Date().getTime());
+		
+		try {
+			Thread.sleep(5);
+		} catch (InterruptedException e1) {	}
+		
+		Timestamp ts1 = new Timestamp(new Date().getTime());
+		
+		try {
+			Thread.sleep(5);
+		} catch (InterruptedException e1) {	}
+		
+		Timestamp ts1b = new Timestamp(new Date().getTime());
+	
+		try {
+			Thread.sleep(5);
+		} catch (InterruptedException e1) {	}
+		
+		Timestamp ts2 = new Timestamp(new Date().getTime());
+		
+		try {
+			Thread.sleep(5);
+		} catch (InterruptedException e1) {	}
+		
+		Timestamp ts2b = new Timestamp(new Date().getTime());
+				
+		try {
+			Thread.sleep(5);
+		} catch (InterruptedException e1) {	}
+		
+		Timestamp ts3 = new Timestamp(new Date().getTime());
+		
+		try {
+			Thread.sleep(5);
+		} catch (InterruptedException e1) {	}
+		
+		Timestamp ts4 = new Timestamp(new Date().getTime());
+				
+		try {
+			table.insert("key1", "v1,v2", ts1);
+			table.insert("key1", "v2,v3", ts2);
+		} catch (InsertOutOfOrderException e) {
+			fail(e.toString());
+		}
+				
+		try {
+			assertEquals("Size of scan should be 1", 1, table.scan("key1", ts1b, ts2b).size());
+			assertEquals("Size of scan should be 1", 1, table.scan("key1", ts1, ts1b).size());
+			assertEquals("Size of scan should be 2", 2, table.scan("key1", ts1, ts2b).size());
+			assertEquals("Size of scan should be 2", 2, table.scan("key1", null, null).size());
+			assertEquals("Size of scan should be 0", 0, table.scan("key1", ts3, ts4).size());
+			assertEquals("Size of scan should be 0", 0, table.scan("key1", ts0, ts0b).size());
+		} catch (KeyNotFoundException e) {
+			fail("key1 should be found");
 		}
 	}
 	
@@ -134,5 +220,20 @@ public class TableTest {
 	@Test(expected = KeyNotFoundException.class) 
 	public void testKeyNotFoundFail() throws Exception{
 		table.get("key1", null).getValue();
+	}
+	
+	@Test(expected = InsertOutOfOrderException.class)
+	public void testInsertOutOfOrderException() throws Exception {
+		Timestamp ts1 = new Timestamp(new Date().getTime());
+		
+		try {
+			Thread.sleep(5);
+		} catch (InterruptedException e1) {	}
+		
+		Timestamp ts2 = new Timestamp(new Date().getTime());
+		
+		table.insert("key1", "v1,v2", ts2);
+		
+		table.insert("key1", "v3,v4", ts1);
 	}
 }
