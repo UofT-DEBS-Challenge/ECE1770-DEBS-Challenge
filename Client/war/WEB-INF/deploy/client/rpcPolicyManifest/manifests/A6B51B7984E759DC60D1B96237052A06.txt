@@ -1,0 +1,2 @@
+serviceClass: debs.challenge.client.client.GreetingService
+path: 3398A97EE5537DF470AD7AD6304D4CFD.gwt.rpc
