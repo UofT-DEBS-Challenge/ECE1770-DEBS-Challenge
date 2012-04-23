@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="lib" path="lib/protobuf-2.4.1.jar" sourcepath="lib/protobuf-2.4.1-src.zip">
+		<attributes>
+			<attribute name="javadoc_location" value="jar:platform:/resource/challengeServer/lib/protobuf-2.4.1-doc.zip!/"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="lib/log4j-1.2.14.jar"/>
+	<classpathentry kind="lib" path="lib/netty-3.2.7.jar" sourcepath="lib/netty-3.2.7-src.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="jar:platform:/resource/challengeServer/lib/netty-3.2.7-src.jar!/"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="src" path="log4j"/>
+	<classpathentry kind="output" path="bin"/>
+</classpath>
