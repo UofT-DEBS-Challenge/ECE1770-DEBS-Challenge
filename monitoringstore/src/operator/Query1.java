@@ -1,6 +1,12 @@
 package operator;
 
 import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.Queue;
+
+import org.apache.commons.math3.stat.regression.SimpleRegression;
+import org.apache.commons.math3.util.Pair;
 
 import debs.challenge.msg.CManufacturingMessages.CDataPoint;
 
@@ -25,12 +31,7 @@ public class Query1 {
 	public static final int OPERATOR14 = 14;
 	public static final int OPERATOR15 = 15;
 
-	boolean m_sbm05 = false ;
-	boolean m_sbm06 = false ;
-	boolean m_sbm07 = false ;
-	boolean m_sbm08 = false ;
-	boolean m_sbm09 = false ;
-	boolean m_sbm10 = false ;
+
 
 	boolean s05Edge = false;
 	boolean s06Edge = false;
@@ -66,197 +67,137 @@ public class Query1 {
 	ArrayList<Long> s710dtBuffer = new ArrayList<Long>();
 	ArrayList<Long> s710tsBuffer = new ArrayList<Long>();
 
+	private static final long ONE_SECOND = 1000000000;
+	private static final long ONE_DAY = 3600 * 24 * ONE_SECOND;
 
+	private boolean bm05 = false ;
+	private boolean bm06 = false ;
+	private boolean bm07 = false ;
+	private boolean bm08 = false ;
+	private boolean bm09 = false ;
+	private boolean bm10 = false ;
+	
+	private boolean op1_init = false;
+	private boolean op2_init = false;
+	private boolean op3_init = false;
+	
+	private long op1Ts = 0;
+	private long op2Ts = 0;
+	private long op3Ts = 0;
+	private long op1Ds = 0;
+	private long op2Ds = 0;
+	private long op3Ds = 0;
+	
+	private Queue<Pair<Long,Long>> twentyFourHoursOp1 = new LinkedList<Pair<Long,Long>>();
+	private Queue<Pair<Long,Long>> twentyFourHoursOp2 = new LinkedList<Pair<Long,Long>>();
+	private Queue<Pair<Long,Long>> twentyFourHoursOp3 = new LinkedList<Pair<Long,Long>>();
+	
+	private long ts = 0;
+	
 	public void evaluate(CDataPoint i_measurement)
 	{
-
-		//operator 1
-		firstLevelOperator(i_measurement,m_sbm05,s05Edge,OPERATOR1);
-		m_sbm05 = i_measurement.getBm05();
-
-		//operator 2
-		firstLevelOperator(i_measurement,m_sbm06,s06Edge,OPERATOR2);
-		m_sbm06 = i_measurement.getBm06();
-
-		//operator 3
-		firstLevelOperator(i_measurement,m_sbm07,s07Edge,OPERATOR3);
-		m_sbm07 = i_measurement.getBm07();
-
-		//operator 4
-		firstLevelOperator(i_measurement,m_sbm08,s08Edge,OPERATOR4);
-		m_sbm08 = i_measurement.getBm08();
-
-		//operator 5
-		firstLevelOperator(i_measurement,m_sbm09,s09Edge,OPERATOR5);
-		m_sbm09 = i_measurement.getBm09();
-
-
-		//operator 6
-		firstLevelOperator(i_measurement,m_sbm10,s10Edge,OPERATOR6);
-		m_sbm10 = i_measurement.getBm10();
-
-		//operator 7
-		secondLevelOperator(s05Edge,s08Edge,OPERATOR7);
-
-		//operator 8
-		secondLevelOperator(s06Edge,s09Edge,OPERATOR8);
-
-		//operator 9
-		secondLevelOperator(s07Edge,s10Edge,OPERATOR9);
-
-
-		//operator 10
-		decreaseThresholdByOnePercent(s58dt, OPERATOR10);
-		//operator 12
-		decreaseThresholdByOnePercent(s69dt, OPERATOR12);
-		//operator 14
-		decreaseThresholdByOnePercent(s710dt, OPERATOR14);
-
-
-		//operator 11
-		s58dtBuffer.add(s58dt);
-		s58tsBuffer.add(s58ts);
-
-		//operator 13
-		s69dtBuffer.add(s69dt);
-		s69tsBuffer.add(s69ts);
-
-		//operator 15
-		s710dtBuffer.add(s710dt);
-		s710tsBuffer.add(s710ts);
-
-	}
-
-
-	/*
-	 * For operator 1-6
-	 */
-	private void firstLevelOperator(CDataPoint i_measurement, boolean oldVal, boolean previous_edge, int operator)
-	{
-		boolean newEdge = findEdgeSequence(i_measurement.getBm05(),oldVal,previous_edge);
-		if(previous_edge != newEdge)
-		{
-			switch(operator) 
-			{
-			case OPERATOR1 : s05Edge = newEdge;
-			s05ts = i_measurement.getTs();
-			break;
-			case OPERATOR2 : s06Edge = newEdge;
-			s06ts = i_measurement.getTs();
-			break;
-			case OPERATOR3 : s07Edge = newEdge;
-			s07ts = i_measurement.getTs();
-			break;
-			case OPERATOR4 : s08Edge = newEdge;
-			s08ts = i_measurement.getTs();
-			break;
-			case OPERATOR5 : s09Edge = newEdge;
-			s09ts = i_measurement.getTs();
-			break;
-			case OPERATOR6 : s10Edge = newEdge;
-			s10ts = i_measurement.getTs();
-			break;
-
+		
+		if (op1_init) {		
+			//TODO Implement the Input's stability check 
+		}
+		
+		ts = i_measurement.getTs();
+		
+		if (bm05 != i_measurement.getBm05()) {
+			op1Ts = ts;
+			bm05 = !bm05;
+		}
+		if (bm06 != i_measurement.getBm06()) {
+			op2Ts = ts;
+			bm06 = !bm06;
+		}
+		if (bm07 != i_measurement.getBm07()) {
+			op3Ts = ts;
+			bm07 = !bm07;
+		}
+		if (bm08 != i_measurement.getBm08()) {
+			op1Ds = ts-op1Ts;
+			bm08 = !bm08;
+			twentyFourHoursOp1.add(new Pair<Long, Long>(ts, op1Ds));
+ 
+			while (true) {
+				if (twentyFourHoursOp1.peek().getKey() + ONE_DAY < ts)
+					twentyFourHoursOp1.remove();
+				else 
+					break;
 			}
+			plot(11);
+		}
+		if (bm09 != i_measurement.getBm09()) {
+			op2Ds = ts-op2Ts;
+			bm09 = !bm09;
+			twentyFourHoursOp2.add(new Pair<Long, Long>(ts, op2Ds));
+			while (true) {
+				if (twentyFourHoursOp2.peek().getKey() + ONE_DAY < ts)
+					twentyFourHoursOp2.remove();
+				else 
+					break;
+			}
+			plot(13);
+		}
+		if (bm10 != i_measurement.getBm10()) {
+			op3Ds = ts-op3Ts;
+			bm10 = !bm10;
+			twentyFourHoursOp3.add(new Pair<Long, Long>(ts, op3Ds));
 
+			while (true) {
+				if (twentyFourHoursOp3.peek().getKey() + ONE_DAY < ts)
+					twentyFourHoursOp3.remove();
+				else 
+					break;
+			}
+			plot(15);
 		}
 
 	}
 
-	private void secondLevelOperator( boolean firstEdge, boolean secondEdge, int operator)
-	{
-		if( (firstEdge && secondEdge) || (!firstEdge && !secondEdge))
-		{
-			switch(operator) 
-			{
-			case OPERATOR7 : s58dt = s05ts - s08ts;
-			s58ts = s08ts;
-			break;
-			case OPERATOR8 : s69dt = s06ts - s09ts;
-			s69ts = s09ts;
-			break;
-			case OPERATOR9 : s710dt = s07ts - s10ts;
-			s710ts = s10ts;
-			break;
-			}
+
+	private void plot(int opCode) {
+		
+		Queue<Pair<Long,Long>> oneDay = new LinkedList<Pair<Long,Long>>();
+		if (opCode == 11) {
+			oneDay = twentyFourHoursOp1;
+		} else if (opCode == 13) {
+			oneDay = twentyFourHoursOp2;
+		} else if (opCode == 15) {
+			oneDay = twentyFourHoursOp3;
 		}
-
-	}
-	/*
-	 * This should be called in every 24 hour by data generator
-	 */
-
-	private void thirdLevelOperator_DayBeep()
-	{
-
-		plotTrend(s58dtBuffer,s58tsBuffer) ;
-		plotTrend(s69dtBuffer,s69tsBuffer) ;
-		plotTrend(s710dtBuffer,s710tsBuffer) ;
-
-	}
-
-	/*
-	 * To find the edge between two value
-	 */
-
-	private boolean findEdgeSequence(boolean newVal, boolean oldVal, boolean previous_edge)
-	{
-		if ( !oldVal && newVal)
-			return true;
-		else if ( oldVal && !newVal )
-			return false;
-		else
-			return previous_edge;
-	}
-
-
-	private void decreaseThresholdByOnePercent(long newDiff, int operator) {
-		switch(operator)
-		{
-		case OPERATOR10 : 
+		
+		long min = Long.MAX_VALUE;
+		long tmpTs = 0;
+		long tmpDelta = 0;
+		SimpleRegression sr = new SimpleRegression();
+		
+		Iterator<Pair<Long, Long>> events = oneDay.iterator();
+		while (events.hasNext()) {
+			tmpDelta = events.next().getValue();
+			tmpTs = events.next().getKey();
+			events.remove();
 			
-			//TODO: is it right to just minus two time stamp
-			if(((newDiff - last24hMinS58)/last24hMinS58)> 0.01)
-			{
-				sendAlarm(s58ts);
-			}
-			if(newDiff<last24hMinS58)
-				last24hMinS58 = newDiff;
-			break;
-		case OPERATOR12 : 
-			if(((newDiff - last24hMinS69)/last24hMinS69)> 0.01)
-			{
-				sendAlarm(s69ts);
-			}
-			if(newDiff<last24hMinS69)
-				last24hMinS69 = newDiff;
-			break;
-		case OPERATOR14 : 
-			if(((newDiff - last24hMinS710)/last24hMinS710)> 0.01)
-			{
-				sendAlarm(s710ts);
-			}
-			if(newDiff<last24hMinS710)
-				last24hMinS710 = newDiff;
-			break;
+			min = tmpDelta < min ? tmpDelta : min;
+			sr.addData(tmpTs, tmpDelta);
 		}
-
-	}
-
-	private void plotTrend(ArrayList<Long> diff, ArrayList<Long> timeStamp) {
-		//Da vinci code
-
+		if (tmpDelta > min * 1.01 )
+			outputAlarm(opCode);
+		outputPlot(sr.getSlope(),sr.getIntercept(), opCode);
 	}
 
 
-	private void sendAlarm(long timestamp) {
-		System.out.println("Snake" + timestamp);
-		//Bingo!!! Congratulation you win. :P
-		//Buzzer buzzer buzzer , mushroom mushroom
+	private void outputAlarm(int opCode) {
+		System.out.println(" Aakash where are you");
+		
 	}
-	public static void main(String[] args) {
-		// TODO Auto-generated method stub
 
+
+	private void outputPlot(double slope, double intercept, int opCode) {
+		System.out.println(" Aakash where are you");
+		
 	}
+
 
 }

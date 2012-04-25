@@ -18,261 +18,199 @@ import debs.challenge.msg.CManufacturingMessages.CDataPoint;
 public class Query2 {
 
 
-	private int max_s_mf01 = 0;
-	private int min_s_mf01 = 0;
+	//First event's Timestamp Holder 
+	private long startTime = 0;
 
-	private int max_s_mf02 = 0;
-	private int min_s_mf02 = 0;
-
-	private int max_s_mf03 = 0;
-	private int min_s_mf03 = 0;
-
-	//to store partial results
-	private float partial_s1_avg_mf01 =0;
-	private float partial_s2_avg_mf02 =0;
-	private float partial_s3_avg_mf03 =0;
+	private static final long ONE_SECOND = 1000000000;
 	
-	//to store time stamp;
-	private long s1ts = 0;
-	private long s2ts = 0;
-	private long s3ts = 0;
-	private long s5ts = 0;
-	private long s6ts = 0;
-	private long s7ts = 0;
 	
-
-	private Queue<Float> s5_pwrBuffer = new LinkedList<Float>();
-	private Queue<Float> s6_pwrBuffer = new LinkedList<Float>();
-	private Queue<Float> s7_pwrBuffer = new LinkedList<Float>();
-
+	private long mf01 = 0;
+	private long mf02 = 0;
+	private long mf03 = 0;
+	private long ts = 0;
 	
-	private Queue<Long> s5tsBuffer = new LinkedList<Long>();
-	private Queue<Long> s6tsBuffer = new LinkedList<Long>();
-	private Queue<Long> s7tsBuffer = new LinkedList<Long>();
-
-
-	private Queue<Integer> smf01Buffer = new LinkedList<Integer>();
-	private Queue<Integer> smf02Buffer = new LinkedList<Integer>();
-	private Queue<Integer> smf03Buffer = new LinkedList<Integer>();
-	private Queue<Long> stsBuffer = new LinkedList<Long>();
-
-	//keep track of no of samples per second ( to maintain 20 second slide window, we need no of record the 20th second)
-	private Queue<Integer> noOf_samples_InThisSecond = new LinkedList<Integer>();
-	private int noOf_dataSamples = 0;
-
-	private long currentTS;
+	private long mf01Sum = 0;
+	private long mf02Sum = 0;
+	private long mf03Sum = 0;
+	private long mf01Max = 0;
+	private long mf02Max = 0;
+	private long mf03Max = 0;
+	private long mf01Min = Long.MAX_VALUE;
+	private long mf02Min = Long.MAX_VALUE;
+	private long mf03Min = Long.MAX_VALUE;
+	private float mf01Avg = 0;
+	private float mf02Avg = 0;
+	private float mf03Avg = 0;
+	private float mf01Rng = 0;
+	private float mf02Rng = 0;
+	private float mf03Rng = 0;
+	private long mfTS = 0;
+	private long mfCount = 0;
 	
-	//private Queue<Long> s1tsBuffer = new LinkedList<Long>();
+	private long violationWindow = 0;
 	
-	//this is counter for operator 4 to track no of times to send output ( next 70 second);
-	private int alarmCounter = 0;
+	private OneSecondBuffer currentSecondBuffer = new OneSecondBuffer();
+	private OneSecondBuffer[] twentySeconds = new OneSecondBuffer[20];
+	private int bufferPointer = 0;
+	private LinkedList<OneSecondBuffer> violationBuffer = new LinkedList<Query2.OneSecondBuffer>();
+
+	//Counter to track 60 seconds
+	private int powerCounter = 0;
+	private float[] mf01pwr = new float[60];
+	private float[] mf02pwr = new float[60];
+	private float[] mf03pwr = new float[60];
 	
-	//this is counter for counting the buffer size for last 20
-	private int secondsCounter = 0;
-
-
-
-
+	
+	public Query2 () {
+		
+	}
 
 	/*
 	 * Call for every data sample
+	 * @param mesaurement data coming from generator in google protocol format
 	 */
 	public void evaluate(CDataPoint measurement)
 	{
-		//measurement = i_measurement;
-		operator1(measurement.getMf01(), measurement.getTs());
-		operator2(measurement.getMf02(), measurement.getTs());
-		operator3(measurement.getMf03(), measurement.getTs());
-		//buffer timestamp
-		stsBuffer.add(measurement.getTs());
-		//counter for number of samples
-		++noOf_dataSamples;
-
-
-	}
-
-
-	/*
-	 * First level operator ( operator 1,2,3) and Operator 4
-	 */
-	public void beepEverySecond()
-	{
-		float s1_rng_mf01 = (max_s_mf01 - min_s_mf01)/max_s_mf01;
-		float s2_rng_mf02 = (max_s_mf02 - min_s_mf02) /max_s_mf02;
-		float s3_rng_mf03 = (max_s_mf03 - min_s_mf03) /max_s_mf03;
-
-		
-		//operator 4
-		if( s1_rng_mf01 > 0.3 || s2_rng_mf02 > 0.3 || s3_rng_mf03 > 0.3)
-		{
-			//if there condition again match, reset alarm for next 70 second
-			alarmCounter = 70;
-			
-			//TODO:- to avoid repeat , check if already published
-			outputLast20Buffer();
-		}
-
-		if(alarmCounter > 0)
-		{
-			outputOp4CurrentData(s1_rng_mf01, s2_rng_mf02, s3_rng_mf03,partial_s1_avg_mf01,partial_s2_avg_mf02,partial_s3_avg_mf03, currentTS );
-			--alarmCounter;
+		if (startTime == 0) {
+			startTime = measurement.getTs();
+			mfTS = startTime + ONE_SECOND;			
 		}
 		
+		mf01 = measurement.getMf01();
+		mf02 = measurement.getMf02();
+		mf03 = measurement.getMf03();
+		ts = measurement.getTs();
 		
-		// For operator 5,6,7
-		//Operator 5
-		float s5_pwr = (float) (208 / Math.pow( partial_s1_avg_mf01 , 1.0/3));
-		//Operator 6
-		float s6_pwr = (float) (208 / Math.pow( partial_s2_avg_mf02 , 1.0/3));
-		//Operator 7
-		float s7_pwr = (float) (208 / Math.pow( partial_s3_avg_mf03 , 1.0/3));
-
-		s5_pwrBuffer.add(s5_pwr);
-		s6_pwrBuffer.add(s6_pwr);
-		s7_pwrBuffer.add(s7_pwr);
-		//TODO wha is s5ts = max (s1.ts)
-		//assuming its same as s1ts
-		s5ts =s1ts;
-		s5tsBuffer.add(s5ts);
-		s6ts =s2ts;
-		s6tsBuffer.add(s6ts);
-		s7ts =s3ts;
-		s7tsBuffer.add(s7ts);
+		//System.out.println(mf01+" "+mf02+" "+mf03+" "+ ts + " " + mfTS + " " + mfCount);
 		
-		
-		//track the no of dataSamples in this second ( to remove those many record while sliding)
-		noOf_samples_InThisSecond.add(noOf_dataSamples);
-		
-		//track no of seconds to track last 20 seconds
-		++secondsCounter;
-		
-		resetEverySecond();
+		currentSecondBuffer.addEvent();
+		operator1_3();
 
 	}
-
-
-
-	/*
-	 * second level operator (operator 4, 5, 6)
-	 */
-	public void beepEveryMinute()
-	{
-
-		sendOp5ToGUI(s5_pwrBuffer,s5tsBuffer);
-		sendOp6ToGUI(s6_pwrBuffer,s6tsBuffer);
-		sendOp7ToGUI(s7_pwrBuffer,s7tsBuffer);
-		
-		resetEveryMinute();
-	}
-
 	
-	private void outputLast20Buffer() {
-		 sendOp4ToGUILast20(smf01Buffer,smf02Buffer,smf02Buffer, stsBuffer);
-
-		//resetEveryMinute();
-	}
-
-	private void resetEverySecond() {
-		max_s_mf01 = 0;
-		min_s_mf01 = 0;
-
-		max_s_mf02 = 0;
-		min_s_mf02 = 0;
-
-		max_s_mf03 = 0;
-		min_s_mf03 = 0;
-
-		partial_s1_avg_mf01 =0;
-		partial_s2_avg_mf02 =0;
-		partial_s3_avg_mf03 =0;
-		
-		noOf_dataSamples =0;
-		 
-		
-		
-		// to ensure 20 second buffer,  and clear the last 20th data
-		if(secondsCounter > 20)
-		{
+	private void operator1_3() {
+				
+		if (mfTS > ts) {
+		mf01Sum += mf01;
+		mf02Sum += mf02;
+		mf03Sum += mf03;
+		mf01Max =  mf01 > mf01Max ? mf01 : mf01Max;
+		mf02Max =  mf02 > mf02Max ? mf02 : mf02Max;
+		mf03Max =  mf03 > mf03Max ? mf03 : mf03Max;
+		mf01Min =  mf01 < mf01Min ? mf01 : mf01Min;
+		mf02Min =  mf02 < mf02Min ? mf02 : mf02Min;
+		mf03Min =  mf03 < mf03Min ? mf03 : mf03Min;
+		mfCount++; 
+		} else {
+			mfTS += ONE_SECOND;
+			mf01Avg = mf01Sum/mfCount;
+			mf02Avg = mf02Sum/mfCount;
+			mf03Avg = mf03Sum/mfCount;
+			mf01Rng = (mf01Max-mf01Min)/mf01Max;
+			mf02Rng = (mf02Max-mf02Min)/mf02Max;
+			mf03Rng = (mf03Max-mf03Min)/mf03Max;
+			
+			manageViolationWindow();
+			
+			twentySeconds[bufferPointer] = currentSecondBuffer;
+			currentSecondBuffer = new OneSecondBuffer();
+			bufferPointer = ((++bufferPointer) % 20);
+			
 
 			
-			int size = noOf_samples_InThisSecond.remove();
-			while ( size > 0 )
-			{
-				smf01Buffer.remove();
-				smf02Buffer.remove();
-				smf03Buffer.remove();
-				stsBuffer.remove();
-				--size; 
-			}
-			--secondsCounter;
+			operator4();
+			operator5_6();
+			
+			
+			
 		}
-
-
 	}
-
-	private  void resetEveryMinute() {
+	
+	private void operator5_6() {
 		
-
+			 mf01pwr[powerCounter] = (float) (208 /(Math.pow( mf01Avg, 1.0/3)));
+			 mf02pwr[powerCounter] = (float) (208 /(Math.pow( mf02Avg, 1.0/3)));
+			 mf03pwr[powerCounter] = (float) (208 /(Math.pow( mf03Avg, 1.0/3)));
+			 
+			 ++powerCounter;
+			 if(powerCounter == 60) {
+				 outputPowerData();
+				 powerCounter = 0;
+			 }
+ 
+			 
 		
-		s5_pwrBuffer.remove();
-		s6_pwrBuffer.remove();
-		s7_pwrBuffer.remove();
-
-		s5tsBuffer.clear();
-		s6tsBuffer.clear();
-		s7tsBuffer.clear();
+	}
+	private void outputPowerData() {
+		System.out.println("Take power from here");
+		
 	}
 
-	private void operator1(int val, long ts) {
-
-		partial_s1_avg_mf01 = (partial_s1_avg_mf01 + val)/2; 
-
-		max_s_mf01 = max_s_mf01 < val ? max_s_mf01 : val ;
-		min_s_mf01 = (min_s_mf01 > val) ? val :min_s_mf01;
-
-		//TODO:- is it correct to compare timestamp in this function
-		//store max timestamp
-		s1ts = s1ts < ts ? ts : s1ts;
-		//buffer each value ( in the beepEvery20Second sliding window be maintained) 
-		smf01Buffer.add(val);
-
+	private void manageViolationWindow() {
+		
+		
+		
+		if (violationWindow > 0) {
+			if (violationBuffer.isEmpty()) {
+				for(int i = 0; i < 20; i++) {
+					violationBuffer.add(twentySeconds[(i+bufferPointer)%20]);
+				}
+			}
+			violationBuffer.add(currentSecondBuffer);
+			--violationWindow;
+			if (violationWindow == 0) {
+				outputRawData();
+				violationBuffer.clear();
+			}
+		}
+		
 	}
 
-	private void operator2(int val, long ts) {
-
-		partial_s2_avg_mf02 = (partial_s2_avg_mf02 + val)/2; 
-
-		max_s_mf02 = max_s_mf02 < val ? max_s_mf02 : val ;
-		min_s_mf02 = (min_s_mf02 > val) ? val :min_s_mf02;
-
-		//TODO:- is it correct to compare timestamp in this function
-		//store max timestamp
-		s2ts = s2ts < ts ? ts : s2ts;
-		//buffer each value ( in the beepEvery20Second sliding window be maintained) 
-		smf02Buffer.add(val);
-
+	public void operator4 () {
+		if(mf01Rng > 0.3 || mf02Rng > 0.3 || mf03Rng > 0.3) {
+			violationWindow = 70;
+			outputViolation();
+		}
 	}
-	private void operator3(int val, long ts) {
-
-		partial_s3_avg_mf03 = (partial_s3_avg_mf03 + val)/2; 
-
-		max_s_mf03 = max_s_mf03 < val ? max_s_mf03 : val ;
-		min_s_mf03 = (min_s_mf03 > val) ? val :min_s_mf03;
-
-		//TODO:- is it correct to compare timestamp in this function
-		//store max timestamp
-		s3ts = s3ts < ts ? ts : s3ts;
-
-		//buffer each value ( in the beepEvery20Second sliding window be maintained) 
-		smf03Buffer.add(val);
+	
+	private void outputRawData() {
+		System.out.println("Raw Data");
 	}
 
-	/**
-	 * @param args
-	 */
-	public static void main(String[] args) {
-		// TODO Auto-generated method stub
 
+	private void outputViolation() {
+		System.out.println("Violation!");
 	}
+
+
+
+	private class OneSecondBuffer {
+		ArrayList<Long> mf01Buffer;
+		ArrayList<Long> mf02Buffer;
+		ArrayList<Long> mf03Buffer;
+		ArrayList<Long> tsBuffer;
+		
+		OneSecondBuffer() {
+			mf01Buffer = new ArrayList<Long>(110);
+			mf02Buffer = new ArrayList<Long>(110);
+			mf03Buffer = new ArrayList<Long>(110);
+			tsBuffer = new ArrayList<Long>(110);
+		}
+		
+		public void addEvent() {
+			mf01Buffer.add(mf01);
+			mf03Buffer.add(mf02);
+			mf02Buffer.add(mf03);
+			tsBuffer.add(ts);
+		}
+		
+		public void clear() {
+			mf01Buffer.clear();
+			mf02Buffer.clear();
+			mf03Buffer.clear();
+			tsBuffer.clear();
+		}
+	}
+	
 
 }

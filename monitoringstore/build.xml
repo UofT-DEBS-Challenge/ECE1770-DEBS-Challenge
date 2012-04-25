@@ -1,0 +1,31 @@
+<?xml version="1.0"?>
+
+
+<project name="generator" default="gpb" basedir=".">
+	<property name="src" value="src" />
+	<property name="tst" value="test" />
+	<property name="bin" value="bin" />
+	<property name="lib" value="lib" />
+	<property name="res" value="res" />
+
+	<uptodate property="gpbUpToDate"> 
+		<srcfiles dir="${src}/debs/challenge/msg/" includes="*.proto" /> 
+		<mapper type="glob" from="*.proto" to="*.java" />
+	</uptodate>
+	
+	<target name="gpb" unless="gpbUpToDate">
+		<exec executable="${res}/protoc.exe">
+			<arg value="--java_out=${src}" />
+			<arg value="${src}/debs/challenge/msg/*.proto" />
+		</exec>	
+	</target>
+	
+	<target name="compile" depends="gpb">
+		<javac srcdir="${src}" destdir="${bin}" includeantruntime="false">
+			<classpath location="${lib}/log4j-1.2.14.jar" />
+			<classpath location="${lib}/netty-3.2.7.jar" />
+			<classpath location="${lib}/protobuf-2.4.1.jar" />
+		</javac>
+	</target>
+		
+</project>
