@@ -1,6 +1,5 @@
 package operator;
 
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Queue;
@@ -12,60 +11,6 @@ import debs.challenge.msg.CManufacturingMessages.CDataPoint;
 
 public class Query1 {
 
-	/**
-	 * @param args
-	 */
-	public static final int OPERATOR1 = 1;
-	public static final int OPERATOR2 = 2;
-	public static final int OPERATOR3 = 3;
-	public static final int OPERATOR4 = 4;
-	public static final int OPERATOR5 = 5;
-	public static final int OPERATOR6 = 6;
-	public static final int OPERATOR7 = 7;
-	public static final int OPERATOR8 = 8;
-	public static final int OPERATOR9 = 9;
-	public static final int OPERATOR10 = 10;
-	public static final int OPERATOR11 = 11;
-	public static final int OPERATOR12 = 12;
-	public static final int OPERATOR13 = 13;
-	public static final int OPERATOR14 = 14;
-	public static final int OPERATOR15 = 15;
-
-
-
-	boolean s05Edge = false;
-	boolean s06Edge = false;
-	boolean s07Edge = false;
-	boolean s08Edge = false;
-	boolean s09Edge = false;
-	boolean s10Edge = false;
-
-	long s05ts = 0;
-	long s06ts = 0;
-	long s07ts = 0;
-	long s08ts = 0;
-	long s09ts = 0;
-	long s10ts = 0;
-
-	long s58dt = 0;
-	long s69dt = 0;
-	long s710dt = 0;
-	long s58ts = 0;
-	long s69ts = 0;
-	long s710ts = 0;
-
-	long last24hMinS58 = 0;
-	long last24hMinS69 =0;
-	long last24hMinS710 = 0;
-
-	ArrayList<Long> s58dtBuffer = new ArrayList<Long>();
-	ArrayList<Long> s58tsBuffer = new ArrayList<Long>();
-
-	ArrayList<Long> s69dtBuffer = new ArrayList<Long>();
-	ArrayList<Long> s69tsBuffer = new ArrayList<Long>();
-
-	ArrayList<Long> s710dtBuffer = new ArrayList<Long>();
-	ArrayList<Long> s710tsBuffer = new ArrayList<Long>();
 
 	private static final long ONE_SECOND = 1000000000;
 	private static final long ONE_DAY = 3600 * 24 * ONE_SECOND;
