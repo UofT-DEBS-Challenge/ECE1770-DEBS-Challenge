@@ -7,8 +7,13 @@ package operator;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.Queue;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.lang.Float;
 import debs.challenge.msg.CManufacturingMessages.CDataPoint;
+import debs.challenge.msg.COutputMessages.CPower;
 
 
 /**
@@ -142,7 +147,49 @@ public class Query2 {
 		
 	}
 	private void outputPowerData() {
-		System.out.println("Take power from here");
+		// Write the new address book back to disk.
+		try {
+			//TODO file name ??
+			FileOutputStream outputFile = new FileOutputStream("tempCPower");
+
+
+			CPower.Builder oPower= CPower.newBuilder();
+			for(int i=0;i<60;i++) 
+			{
+				oPower.setTs(mfTS - (60 -i) * ONE_SECOND );
+				oPower.setPower1(mf01pwr[i]);
+				oPower.setPower2(mf02pwr[i]);
+				oPower.setPower3(mf03pwr[i]);
+				oPower.build().writeDelimitedTo(outputFile);
+			}
+			outputFile.close();
+
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
+//For verification purpose
+//		FileInputStream inputFile;
+//		try {
+//			int j = 0;
+//			//TODO file name ??
+//			inputFile = new FileInputStream("tempCPower");
+//			while(true){
+//				CPower oIPower = CPower.parseDelimitedFrom(inputFile);
+//				if(oIPower == null){
+//					break;
+//				}
+//			}
+//
+//
+//		} catch (FileNotFoundException e) {
+//			e.printStackTrace();
+//		} catch (IOException e) {
+//			e.printStackTrace();
+//		}
+
 		
 	}
 
@@ -174,12 +221,14 @@ public class Query2 {
 	}
 	
 	private void outputRawData() {
+		//TODO Where to write??
 		System.out.println("Raw Data");
 	}
 
 
 	private void outputViolation() {
-		System.out.println("Violation!");
+		// TODO write in proto file
+		System.out.println("Violation! at " + ts);
 	}
 
 

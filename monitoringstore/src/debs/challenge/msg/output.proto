@@ -1,0 +1,33 @@
+package debs.challenge.msg;
+
+option optimize_for = SPEED;
+option java_outer_classname = "COutputMessages";
+
+message CAlarm {
+	required fixed64	ts	    = 1;
+	required uint32		opCode	= 2;
+}
+
+message CPlot {
+	required fixed64	ts	    	= 1;
+	required uint32		opCode		= 2;
+	required uint32		slope		= 3;
+	required uint32		intercept	= 4;
+}
+
+message CPower {
+	required fixed64	ts	    = 1;
+	required float		power1	= 2;
+	required float		power2	= 3;
+	required float		power3	= 4;
+}
+
+message CViolation {
+	required fixed64	ts	    = 1;
+	required float		mf01Avg = 2;
+	required float		mf02Avg = 3;
+	required float		mf03Avg = 4;
+	required float		mf01Rng = 5;
+	required float		mf02Rng = 6;
+	required float		mf03Rng = 7;
+}

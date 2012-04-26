@@ -102,13 +102,13 @@ public class CSimpleServerManufacturing extends SimpleChannelHandler {
 	@Override
 	public void messageReceived(ChannelHandlerContext ctx, MessageEvent e) {
 		CDataPoint measurement = (CDataPoint) e.getMessage();
-		if(measurement.getBm05())
-			System.out.println("Found a 1 in bm05");
-		if(measurement.getBm08())
-			System.out.println("Found a 1 in bm08");
+//		if(measurement.getBm05())
+//			System.out.println("Found a 1 in bm05");
+//		if(measurement.getBm08())
+//			System.out.println("Found a 1 in bm08");
 //		try {
-//			q1.evaluate(measurement);
-//			q2.evaluate(measurement);
+			q1.evaluate(measurement);
+			q2.evaluate(measurement);
 //		} catch (Exception ex) {
 //			ex.printStackTrace();
 //		}

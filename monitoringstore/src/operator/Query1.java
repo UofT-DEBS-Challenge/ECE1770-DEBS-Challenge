@@ -42,61 +42,79 @@ public class Query1 {
 	public void evaluate(CDataPoint i_measurement)
 	{
 		
-		if (op1_init) {		
-			//TODO Implement the Input's stability check 
+		if (!op1_init) {		
+			 op1_init = (i_measurement.getPp04() == i_measurement.getPp05());
 		}
+		if (!op2_init) {		
+			 op2_init = (i_measurement.getPp05() == i_measurement.getPp06());
+		}
+		if (!op3_init) {		
+			 op3_init = (i_measurement.getPp04() == i_measurement.getPp06());
+		}
+		
+		
 		
 		ts = i_measurement.getTs();
 		
-		if (bm05 != i_measurement.getBm05()) {
-			op1Ts = ts;
-			bm05 = !bm05;
-		}
-		if (bm06 != i_measurement.getBm06()) {
-			op2Ts = ts;
-			bm06 = !bm06;
-		}
-		if (bm07 != i_measurement.getBm07()) {
-			op3Ts = ts;
-			bm07 = !bm07;
-		}
-		if (bm08 != i_measurement.getBm08()) {
-			op1Ds = ts-op1Ts;
-			bm08 = !bm08;
-			twentyFourHoursOp1.add(new Pair<Long, Long>(ts, op1Ds));
- 
-			while (true) {
-				if (twentyFourHoursOp1.peek().getKey() + ONE_DAY < ts)
-					twentyFourHoursOp1.remove();
-				else 
-					break;
+		if (op1_init) {
+			if (bm05 != i_measurement.getPp04()) {
+				op1Ts = ts;
+				bm05 = !bm05;
 			}
-			plot(11);
-		}
-		if (bm09 != i_measurement.getBm09()) {
-			op2Ds = ts-op2Ts;
-			bm09 = !bm09;
-			twentyFourHoursOp2.add(new Pair<Long, Long>(ts, op2Ds));
-			while (true) {
-				if (twentyFourHoursOp2.peek().getKey() + ONE_DAY < ts)
-					twentyFourHoursOp2.remove();
-				else 
-					break;
-			}
-			plot(13);
-		}
-		if (bm10 != i_measurement.getBm10()) {
-			op3Ds = ts-op3Ts;
-			bm10 = !bm10;
-			twentyFourHoursOp3.add(new Pair<Long, Long>(ts, op3Ds));
 
-			while (true) {
-				if (twentyFourHoursOp3.peek().getKey() + ONE_DAY < ts)
-					twentyFourHoursOp3.remove();
-				else 
-					break;
+			if (bm08 != i_measurement.getPp05()) {
+				op1Ds = ts-op1Ts;
+				bm08 = !bm08;
+				twentyFourHoursOp1.add(new Pair<Long, Long>(ts, op1Ds));
+
+				while (true) {
+					if (twentyFourHoursOp1.peek().getKey() + ONE_DAY < ts)
+						twentyFourHoursOp1.remove();
+					else 
+						break;
+				}
+				plot(11);
 			}
-			plot(15);
+		}
+		
+		if(op2_init) {
+			if (bm06 != i_measurement.getPp05()) {
+				op2Ts = ts;
+				bm06 = !bm06;
+			}
+
+			if (bm09 != i_measurement.getPp06()) {
+				op2Ds = ts-op2Ts;
+				bm09 = !bm09;
+				twentyFourHoursOp2.add(new Pair<Long, Long>(ts, op2Ds));
+				while (true) {
+					if (twentyFourHoursOp2.peek().getKey() + ONE_DAY < ts)
+						twentyFourHoursOp2.remove();
+					else 
+						break;
+				}
+				plot(13);
+			}
+		}
+		if(op3_init) {
+			if (bm07 != i_measurement.getPp04()) {
+				op3Ts = ts;
+				bm07 = !bm07;
+
+			}
+			if (bm10 != i_measurement.getPp06()) {
+				op3Ds = ts-op3Ts;
+				bm10 = !bm10;
+				twentyFourHoursOp3.add(new Pair<Long, Long>(ts, op3Ds));
+
+				while (true) {
+					if (twentyFourHoursOp3.peek().getKey() + ONE_DAY < ts)
+						twentyFourHoursOp3.remove();
+					else 
+						break;
+				}
+				plot(15);
+			}
 		}
 
 	}
@@ -119,6 +137,7 @@ public class Query1 {
 		SimpleRegression sr = new SimpleRegression();
 		
 		Iterator<Pair<Long, Long>> events = oneDay.iterator();
+		
 		while (events.hasNext()) {
 			tmpDelta = events.next().getValue();
 			tmpTs = events.next().getKey();
@@ -129,18 +148,21 @@ public class Query1 {
 		}
 		if (tmpDelta > min * 1.01 )
 			outputAlarm(opCode);
+		 
 		outputPlot(sr.getSlope(),sr.getIntercept(), opCode);
 	}
 
 
 	private void outputAlarm(int opCode) {
-		System.out.println(" Aakash where are you");
-		
+		//TODO :- Write in GPB
+		System.out.println(" Alarm Alarm with " + opCode);	
 	}
 
 
 	private void outputPlot(double slope, double intercept, int opCode) {
-		System.out.println(" Aakash where are you");
+		//TODO Write in GPB
+		//TODO : check the initialization problem
+		System.out.println(" Plot with slope " + slope + " intercept " + intercept + " opcode " + opCode  );
 		
 	}
 
