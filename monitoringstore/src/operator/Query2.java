@@ -7,13 +7,17 @@ package operator;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.Queue;
+import java.io.BufferedWriter;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.lang.Float;
 import debs.challenge.msg.CManufacturingMessages.CDataPoint;
+import debs.challenge.msg.COutputMessages.CAlarm;
 import debs.challenge.msg.COutputMessages.CPower;
+import debs.challenge.msg.COutputMessages.CViolation;
 
 
 /**
@@ -221,14 +225,55 @@ public class Query2 {
 	}
 	
 	private void outputRawData() {
-		//TODO Where to write??
-		System.out.println("Raw Data");
+		//TODO Correct file name
+		BufferedWriter bw = null;
+		try {
+			bw = new BufferedWriter(new FileWriter("tempRawData", true));
+			bw.write("New Dump");
+			bw.newLine();
+			//Check if this looks good 
+			while(violationBuffer.size()>0){
+				bw.write(violationBuffer.toString());
+			}
+			bw.flush();
+		} catch (IOException ioe) {
+			ioe.printStackTrace();
+		} finally {                      
+			if (bw != null) try {
+				bw.close();
+			} catch (IOException ioe2) {
+			
+			}
+		} // end try/catch/finally
+
+
+
 	}
 
 
 	private void outputViolation() {
 		// TODO write in proto file
-		System.out.println("Violation! at " + ts);
+		// Write the new address book back to disk.
+		try {
+			//TODO file name ??
+			FileOutputStream outputFile = new FileOutputStream("tempVoilation");
+
+
+			CViolation.Builder oViolation= CViolation.newBuilder();
+			oViolation.setTs(mfTS);
+			oViolation.setMf01Avg(mf01Avg);
+			oViolation.setMf01Rng(mf01Rng);
+			oViolation.setMf02Avg(mf02Avg);
+			oViolation.setMf02Rng(mf02Rng);
+			oViolation.setMf03Avg(mf03Avg);
+			oViolation.setMf03Rng(mf03Rng);
+			outputFile.close();
+
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 
 

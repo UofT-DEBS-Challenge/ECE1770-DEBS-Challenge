@@ -430,13 +430,13 @@ public final class COutputMessages {
     boolean hasOpCode();
     int getOpCode();
     
-    // required uint32 slope = 3;
+    // required double slope = 3;
     boolean hasSlope();
-    int getSlope();
+    double getSlope();
     
-    // required uint32 intercept = 4;
+    // required double intercept = 4;
     boolean hasIntercept();
-    int getIntercept();
+    double getIntercept();
   }
   public static final class CPlot extends
       com.google.protobuf.GeneratedMessage
@@ -487,31 +487,31 @@ public final class COutputMessages {
       return opCode_;
     }
     
-    // required uint32 slope = 3;
+    // required double slope = 3;
     public static final int SLOPE_FIELD_NUMBER = 3;
-    private int slope_;
+    private double slope_;
     public boolean hasSlope() {
       return ((bitField0_ & 0x00000004) == 0x00000004);
     }
-    public int getSlope() {
+    public double getSlope() {
       return slope_;
     }
     
-    // required uint32 intercept = 4;
+    // required double intercept = 4;
     public static final int INTERCEPT_FIELD_NUMBER = 4;
-    private int intercept_;
+    private double intercept_;
     public boolean hasIntercept() {
       return ((bitField0_ & 0x00000008) == 0x00000008);
     }
-    public int getIntercept() {
+    public double getIntercept() {
       return intercept_;
     }
     
     private void initFields() {
       ts_ = 0L;
       opCode_ = 0;
-      slope_ = 0;
-      intercept_ = 0;
+      slope_ = 0D;
+      intercept_ = 0D;
     }
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
@@ -548,10 +548,10 @@ public final class COutputMessages {
         output.writeUInt32(2, opCode_);
       }
       if (((bitField0_ & 0x00000004) == 0x00000004)) {
-        output.writeUInt32(3, slope_);
+        output.writeDouble(3, slope_);
       }
       if (((bitField0_ & 0x00000008) == 0x00000008)) {
-        output.writeUInt32(4, intercept_);
+        output.writeDouble(4, intercept_);
       }
       getUnknownFields().writeTo(output);
     }
@@ -572,11 +572,11 @@ public final class COutputMessages {
       }
       if (((bitField0_ & 0x00000004) == 0x00000004)) {
         size += com.google.protobuf.CodedOutputStream
-          .computeUInt32Size(3, slope_);
+          .computeDoubleSize(3, slope_);
       }
       if (((bitField0_ & 0x00000008) == 0x00000008)) {
         size += com.google.protobuf.CodedOutputStream
-          .computeUInt32Size(4, intercept_);
+          .computeDoubleSize(4, intercept_);
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSerializedSize = size;
@@ -706,9 +706,9 @@ public final class COutputMessages {
         bitField0_ = (bitField0_ & ~0x00000001);
         opCode_ = 0;
         bitField0_ = (bitField0_ & ~0x00000002);
-        slope_ = 0;
+        slope_ = 0D;
         bitField0_ = (bitField0_ & ~0x00000004);
-        intercept_ = 0;
+        intercept_ = 0D;
         bitField0_ = (bitField0_ & ~0x00000008);
         return this;
       }
@@ -849,14 +849,14 @@ public final class COutputMessages {
               opCode_ = input.readUInt32();
               break;
             }
-            case 24: {
+            case 25: {
               bitField0_ |= 0x00000004;
-              slope_ = input.readUInt32();
+              slope_ = input.readDouble();
               break;
             }
-            case 32: {
+            case 33: {
               bitField0_ |= 0x00000008;
-              intercept_ = input.readUInt32();
+              intercept_ = input.readDouble();
               break;
             }
           }
@@ -907,15 +907,15 @@ public final class COutputMessages {
         return this;
       }
       
-      // required uint32 slope = 3;
-      private int slope_ ;
+      // required double slope = 3;
+      private double slope_ ;
       public boolean hasSlope() {
         return ((bitField0_ & 0x00000004) == 0x00000004);
       }
-      public int getSlope() {
+      public double getSlope() {
         return slope_;
       }
-      public Builder setSlope(int value) {
+      public Builder setSlope(double value) {
         bitField0_ |= 0x00000004;
         slope_ = value;
         onChanged();
@@ -923,20 +923,20 @@ public final class COutputMessages {
       }
       public Builder clearSlope() {
         bitField0_ = (bitField0_ & ~0x00000004);
-        slope_ = 0;
+        slope_ = 0D;
         onChanged();
         return this;
       }
       
-      // required uint32 intercept = 4;
-      private int intercept_ ;
+      // required double intercept = 4;
+      private double intercept_ ;
       public boolean hasIntercept() {
         return ((bitField0_ & 0x00000008) == 0x00000008);
       }
-      public int getIntercept() {
+      public double getIntercept() {
         return intercept_;
       }
-      public Builder setIntercept(int value) {
+      public Builder setIntercept(double value) {
         bitField0_ |= 0x00000008;
         intercept_ = value;
         onChanged();
@@ -944,7 +944,7 @@ public final class COutputMessages {
       }
       public Builder clearIntercept() {
         bitField0_ = (bitField0_ & ~0x00000008);
-        intercept_ = 0;
+        intercept_ = 0D;
         onChanged();
         return this;
       }
@@ -2269,7 +2269,7 @@ public final class COutputMessages {
       "\n\014output.proto\022\022debs.challenge.msg\"$\n\006CA" +
       "larm\022\n\n\002ts\030\001 \002(\006\022\016\n\006opCode\030\002 \002(\r\"E\n\005CPlo" +
       "t\022\n\n\002ts\030\001 \002(\006\022\016\n\006opCode\030\002 \002(\r\022\r\n\005slope\030\003" +
-      " \002(\r\022\021\n\tintercept\030\004 \002(\r\"D\n\006CPower\022\n\n\002ts\030" +
+      " \002(\001\022\021\n\tintercept\030\004 \002(\001\"D\n\006CPower\022\n\n\002ts\030" +
       "\001 \002(\006\022\016\n\006power1\030\002 \002(\002\022\016\n\006power2\030\003 \002(\002\022\016\n" +
       "\006power3\030\004 \002(\002\"~\n\nCViolation\022\n\n\002ts\030\001 \002(\006\022" +
       "\017\n\007mf01Avg\030\002 \002(\002\022\017\n\007mf02Avg\030\003 \002(\002\022\017\n\007mf0" +

@@ -1,5 +1,8 @@
 package operator;
 
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Queue;
@@ -8,6 +11,9 @@ import org.apache.commons.math3.stat.regression.SimpleRegression;
 import org.apache.commons.math3.util.Pair;
 
 import debs.challenge.msg.CManufacturingMessages.CDataPoint;
+import debs.challenge.msg.COutputMessages.CAlarm;
+import debs.challenge.msg.COutputMessages.CPlot;
+import debs.challenge.msg.COutputMessages.CViolation;
 
 public class Query1 {
 
@@ -155,14 +161,40 @@ public class Query1 {
 
 	private void outputAlarm(int opCode) {
 		//TODO :- Write in GPB
-		System.out.println(" Alarm Alarm with " + opCode);	
+		try {
+			//TODO file name ??
+			FileOutputStream outputFile = new FileOutputStream("tempAlarm");
+			CAlarm.Builder oAlarm= CAlarm.newBuilder();
+			oAlarm.setTs(ts);
+			oAlarm.setOpCode(opCode);
+			outputFile.close();
+
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 
 
 	private void outputPlot(double slope, double intercept, int opCode) {
 		//TODO Write in GPB
-		//TODO : check the initialization problem
-		System.out.println(" Plot with slope " + slope + " intercept " + intercept + " opcode " + opCode  );
+		//TODO :- Write in GPB
+		try {
+			//TODO file name ??
+			FileOutputStream outputFile = new FileOutputStream("tempPlot");
+			CPlot.Builder oPlot= CPlot.newBuilder();
+			oPlot.setTs(ts);
+			oPlot.setOpCode(opCode);
+			oPlot.setIntercept(intercept);
+			oPlot.setSlope(slope);
+			outputFile.close();
+
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 		
 	}
 
