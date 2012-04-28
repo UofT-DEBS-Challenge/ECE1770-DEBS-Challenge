@@ -44,18 +44,22 @@ public class Query1 {
 	private Queue<Pair<Long,Long>> twentyFourHoursOp3 = new LinkedList<Pair<Long,Long>>();
 	
 	private long ts = 0;
+	private long starttime = 0;
 	
 	public void evaluate(CDataPoint i_measurement)
 	{
 		
 		if (!op1_init) {		
 			 op1_init = (i_measurement.getPp04() == i_measurement.getPp05());
+			 starttime = starttime == 0 ? i_measurement.getTs() : 0;
 		}
 		if (!op2_init) {		
 			 op2_init = (i_measurement.getPp05() == i_measurement.getPp06());
+			 starttime = starttime == 0 ? i_measurement.getTs() : 0;
 		}
 		if (!op3_init) {		
 			 op3_init = (i_measurement.getPp04() == i_measurement.getPp06());
+			 starttime = starttime == 0 ? i_measurement.getTs() : 0;
 		}
 		
 		
@@ -150,7 +154,7 @@ public class Query1 {
 			events.remove();
 			
 			min = tmpDelta < min ? tmpDelta : min;
-			sr.addData(tmpTs, tmpDelta);
+			sr.addData(tmpTs-starttime, tmpDelta);
 		}
 		if (tmpDelta > min * 1.01 )
 			outputAlarm(opCode);
