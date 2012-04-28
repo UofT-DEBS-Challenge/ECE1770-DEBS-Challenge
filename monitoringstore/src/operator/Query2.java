@@ -21,7 +21,7 @@ import debs.challenge.msg.COutputMessages.CViolation;
 
 
 /**
- * @author Navneet
+ * @author Navneet, Tilmann
  *
  */
 public class Query2 {

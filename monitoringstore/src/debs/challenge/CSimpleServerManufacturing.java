@@ -23,7 +23,7 @@ import debs.challenge.msg.CManufacturingMessages.CDataPoint;
 public class CSimpleServerManufacturing extends SimpleChannelHandler {
 
 //	private long i = 0;
-//	private long modulo = û1;
+//	private long modulo = ï¿½1;
 	private Query1 q1;
 	private Query2 q2;
 	
@@ -73,6 +73,8 @@ public class CSimpleServerManufacturing extends SimpleChannelHandler {
 	public void channelConnected(ChannelHandlerContext ctx, ChannelStateEvent e) {
 		logger.info("Client connected: " + ctx.getChannel().getRemoteAddress()
 				+ " :> " + ctx.getChannel().getLocalAddress());
+		q1 = new Query1();
+		q2 = new Query2();
 	}
 
 	/*
