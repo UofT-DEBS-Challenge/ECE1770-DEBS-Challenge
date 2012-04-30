@@ -23,7 +23,9 @@ import debs.challenge.msg.CManufacturingMessages.CDataPoint;
 public class CSimpleServerManufacturing extends SimpleChannelHandler {
 
 //	private long i = 0;
-//	private long modulo = û1;
+	private long modulo = 1L, time = 0L;
+	private int count = 0;
+	private long latency = 0L;
 	private Query1 q1;
 	private Query2 q2;
 	
@@ -33,7 +35,7 @@ public class CSimpleServerManufacturing extends SimpleChannelHandler {
 	public CSimpleServerManufacturing(final InetSocketAddress sa, final long mod) {
 		q1 = new Query1();
 		q2 = new Query2();
-//		modulo = mod;
+		modulo = mod;
 		new CTCPPacketReceiver(sa, this, CDataPoint.getDefaultInstance());
 		logger.info("Started server @ "+sa.getAddress()+":" + sa.getPort());
 //		logger.info("Started server @ "+sa.getAddress()+":" + sa.getPort() + ". Printing every " + modulo + " message." );	
@@ -73,6 +75,8 @@ public class CSimpleServerManufacturing extends SimpleChannelHandler {
 	public void channelConnected(ChannelHandlerContext ctx, ChannelStateEvent e) {
 		logger.info("Client connected: " + ctx.getChannel().getRemoteAddress()
 				+ " :> " + ctx.getChannel().getLocalAddress());
+		q1 = new Query1();
+		q2 = new Query2();
 	}
 
 	/*
@@ -106,9 +110,26 @@ public class CSimpleServerManufacturing extends SimpleChannelHandler {
 //			System.out.println("Found a 1 in bm05");
 //		if(measurement.getBm08())
 //			System.out.println("Found a 1 in bm08");
-//		try {
-			q1.evaluate(measurement);
-			q2.evaluate(measurement);
+//		try {	
+		
+		if(count == 0){
+			time = System.nanoTime();
+		}
+	
+		count++;
+		long start = System.nanoTime();
+		q1.evaluate(measurement);
+		q2.evaluate(measurement);
+		long delay = System.nanoTime() - start;
+		latency += delay;
+		
+		if(count % modulo == 0){
+			long elapsed = System.nanoTime() - time;
+			System.out.println("Average latency: " + (latency/count) + ", Throughput: " + count + ", Elapsed: " + elapsed);
+			count = 0;
+			latency = 0;
+		}
+		
 //		} catch (Exception ex) {
 //			ex.printStackTrace();
 //		}
