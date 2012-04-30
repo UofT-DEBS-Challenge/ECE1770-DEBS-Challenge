@@ -22,10 +22,10 @@ import debs.challenge.msg.CManufacturingMessages.CDataPoint;
 
 public class CSimpleServerManufacturing extends SimpleChannelHandler {
 
-//	private long i = 0;
 	private long modulo = 1L, time = 0L;
 	private int count = 0;
 	private long latency = 0L;
+
 	private Query1 q1;
 	private Query2 q2;
 	
