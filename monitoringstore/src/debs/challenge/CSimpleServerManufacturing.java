@@ -23,7 +23,7 @@ import debs.challenge.msg.CManufacturingMessages.CDataPoint;
 public class CSimpleServerManufacturing extends SimpleChannelHandler {
 
 //	private long modulo = 1L, time = 0L;
-//	private int count = 0;
+//	private int count = 0, repeat = 1;
 //	private long latency = 0L;
 //	private boolean reset = true;
 
@@ -33,10 +33,11 @@ public class CSimpleServerManufacturing extends SimpleChannelHandler {
 	private Logger logger = Logger.getLogger(CSimpleServerManufacturing.class
 			.getCanonicalName());
 
-	public CSimpleServerManufacturing(final InetSocketAddress sa/*, final long mod*/) {
+	public CSimpleServerManufacturing(final InetSocketAddress sa/*, final long mod, final int repeat*/) {
 		q1 = new Query1();
 		q2 = new Query2();
 //		modulo = mod;
+//		this.repeat = repeat;
 		new CTCPPacketReceiver(sa, this, CDataPoint.getDefaultInstance());
 		logger.info("Started server @ "+sa.getAddress()+":" + sa.getPort());
 //		logger.info("Started server @ "+sa.getAddress()+":" + sa.getPort() + ". Printing every " + modulo + " message." );	
@@ -47,7 +48,7 @@ public class CSimpleServerManufacturing extends SimpleChannelHandler {
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		new CSimpleServerManufacturing(new InetSocketAddress(args[0], Integer.parseInt(args[1]))/*, Long.parseLong(args[2])*/);
+		new CSimpleServerManufacturing(new InetSocketAddress(args[0], Integer.parseInt(args[1]))/*, Long.parseLong(args[2]), Integer.parseInt(args[3])*/);
 	}
 
 	/*
@@ -119,7 +120,7 @@ public class CSimpleServerManufacturing extends SimpleChannelHandler {
 	
 		count++;
 		long start = System.nanoTime();
-		for(int i = 0; i<100;i++){*/
+		for(int i = 0; i<repeat;i++){*/
 		q1.evaluate(measurement);
 		q2.evaluate(measurement);
 /*		}
