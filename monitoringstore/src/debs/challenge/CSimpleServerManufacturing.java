@@ -22,10 +22,10 @@ import debs.challenge.msg.CManufacturingMessages.CDataPoint;
 
 public class CSimpleServerManufacturing extends SimpleChannelHandler {
 
-//	private long modulo = 1L, time = 0L;
-//	private int count = 0, repeat = 1;
-//	private long latency = 0L;
-//	private boolean reset = true;
+	private long modulo = 1L, time = 0L;
+	private int count = 0, repeat = 1;
+	private long latency = 0L;
+	private boolean reset = true;
 
 	private Query1 q1;
 	private Query2 q2;
@@ -33,11 +33,11 @@ public class CSimpleServerManufacturing extends SimpleChannelHandler {
 	private Logger logger = Logger.getLogger(CSimpleServerManufacturing.class
 			.getCanonicalName());
 
-	public CSimpleServerManufacturing(final InetSocketAddress sa/*, final long mod, final int repeat*/) {
+	public CSimpleServerManufacturing(final InetSocketAddress sa, final long mod, final int repeat) {
 		q1 = new Query1();
 		q2 = new Query2();
-//		modulo = mod;
-//		this.repeat = repeat;
+		modulo = mod;
+		this.repeat = repeat;
 		new CTCPPacketReceiver(sa, this, CDataPoint.getDefaultInstance());
 		logger.info("Started server @ "+sa.getAddress()+":" + sa.getPort());
 //		logger.info("Started server @ "+sa.getAddress()+":" + sa.getPort() + ". Printing every " + modulo + " message." );	
@@ -48,7 +48,7 @@ public class CSimpleServerManufacturing extends SimpleChannelHandler {
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		new CSimpleServerManufacturing(new InetSocketAddress(args[0], Integer.parseInt(args[1]))/*, Long.parseLong(args[2]), Integer.parseInt(args[3])*/);
+		new CSimpleServerManufacturing(new InetSocketAddress(args[0], Integer.parseInt(args[1])), Long.parseLong(args[2]), Integer.parseInt(args[3]));
 	}
 
 	/*
@@ -114,16 +114,16 @@ public class CSimpleServerManufacturing extends SimpleChannelHandler {
 //			System.out.println("Found a 1 in bm08");
 //		try {	
 		
-		/*if(count == 0){
+		if(count == 0){
 			time = System.nanoTime();
 		}
 	
 		count++;
 		long start = System.nanoTime();
-		for(int i = 0; i<repeat;i++){*/
+		for(int i = 0; i<repeat;i++){
 		q1.evaluate(measurement);
 		q2.evaluate(measurement);
-/*		}
+		}
 		long delay = System.nanoTime() - start;
 		latency += delay;
 		
@@ -133,7 +133,7 @@ public class CSimpleServerManufacturing extends SimpleChannelHandler {
 			count = 0;
 			latency = 0;
 			reset = false;
-		}*/
+		}
 		
 //		} catch (Exception ex) {
 //			ex.printStackTrace();
