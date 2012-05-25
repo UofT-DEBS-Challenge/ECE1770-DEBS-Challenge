@@ -13,7 +13,6 @@ import org.apache.commons.math3.util.Pair;
 import debs.challenge.msg.CManufacturingMessages.CDataPoint;
 import debs.challenge.msg.COutputMessages.CAlarm;
 import debs.challenge.msg.COutputMessages.CPlot;
-import debs.challenge.msg.COutputMessages.CViolation;
 
 public class Query1 {
 
@@ -44,7 +43,17 @@ public class Query1 {
 
 	private long ts = 0;
 	private long starttime = 0;
+	
+	private boolean display = false;
+	private boolean store = false;
+	private boolean verbose = false;
 
+	public Query1 (boolean s, boolean d, boolean v) {
+		this.store = s;
+		this.display = d;
+		this.verbose = v;
+	}
+	
 	public void evaluate(CDataPoint i_measurement) {
 
 		if (!op1_init) {
@@ -153,20 +162,28 @@ public class Query1 {
 				sr.addData(tmpTs - starttime, tmpDelta);
 			}
 		}
-		if (tmpDelta > min * 1.01)
-			outputAlarm(opCode);
+		if (tmpDelta > min * 1.01) {
+			if (store || display)
+				outputAlarm(opCode);
+			if (verbose)
+				System.out.println("Query2 Violation. Timestamp: " + ts);
+		}
 
-		outputPlot(sr.getSlope(), sr.getIntercept(), opCode);
+		if (store || display)
+			outputPlot(sr.getSlope(), sr.getIntercept(), opCode);
+		if (verbose)
+			System.out.println("Query2 plotting. Timestamp: " + ts + " slope: " + sr.getSlope() + " intercept: ");
 	}
 
 	private void outputAlarm(int opCode) {
 		// TODO :- Write in GPB
 		try {
 			// TODO file name ??
-			FileOutputStream outputFile = new FileOutputStream("tempAlarm");
+			FileOutputStream outputFile = new FileOutputStream("tempAlarm",true);
 			CAlarm.Builder oAlarm = CAlarm.newBuilder();
 			oAlarm.setTs(ts);
 			oAlarm.setOpCode(opCode);
+			oAlarm.build().writeDelimitedTo(outputFile);
 			outputFile.close();
 
 		} catch (FileNotFoundException e) {
@@ -181,12 +198,13 @@ public class Query1 {
 		// TODO :- Write in GPB
 		try {
 			// TODO file name ??
-			FileOutputStream outputFile = new FileOutputStream("tempPlot");
+			FileOutputStream outputFile = new FileOutputStream("tempPlot",true);
 			CPlot.Builder oPlot = CPlot.newBuilder();
 			oPlot.setTs(ts);
 			oPlot.setOpCode(opCode);
 			oPlot.setIntercept(intercept);
 			oPlot.setSlope(slope);
+			oPlot.build().writeDelimitedTo(outputFile);
 			outputFile.close();
 
 		} catch (FileNotFoundException e) {

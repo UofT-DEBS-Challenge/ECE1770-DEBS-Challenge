@@ -1,21 +1,15 @@
-/**
- * 
- */
 package operator;
 
 
 import java.util.ArrayList;
 import java.util.LinkedList;
-import java.util.Queue;
+import java.util.ListIterator;
 import java.io.BufferedWriter;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.lang.Float;
 import debs.challenge.msg.CManufacturingMessages.CDataPoint;
-import debs.challenge.msg.COutputMessages.CAlarm;
 import debs.challenge.msg.COutputMessages.CPower;
 import debs.challenge.msg.COutputMessages.CViolation;
 
@@ -70,8 +64,14 @@ public class Query2 {
 	private float[] mf03pwr = new float[60];
 	
 	
-	public Query2 () {
-		
+	private boolean display = false;
+	private boolean store = false;
+	private boolean verbose = false;
+	
+	public Query2 (boolean s, boolean d, boolean v) {
+		this.store = s;
+		this.display = d;
+		this.verbose = v;
 	}
 
 	/*
@@ -89,6 +89,7 @@ public class Query2 {
 		mf02 = measurement.getMf02();
 		mf03 = measurement.getMf03();
 		ts = measurement.getTs();
+				
 		
 		//System.out.println(mf01+" "+mf02+" "+mf03+" "+ ts + " " + mfTS + " " + mfCount);
 		
@@ -99,7 +100,7 @@ public class Query2 {
 	
 	private void operator1_3() {
 				
-		if (mfTS > ts) {
+		
 		mf01Sum += mf01;
 		mf02Sum += mf02;
 		mf03Sum += mf03;
@@ -110,14 +111,31 @@ public class Query2 {
 		mf02Min =  mf02 < mf02Min ? mf02 : mf02Min;
 		mf03Min =  mf03 < mf03Min ? mf03 : mf03Min;
 		mfCount++; 
-		} else {
+		if (mfTS <= ts) {
 			mfTS += ONE_SECOND;
-			mf01Avg = mf01Sum/mfCount;
-			mf02Avg = mf02Sum/mfCount;
-			mf03Avg = mf03Sum/mfCount;
-			mf01Rng = (mf01Max-mf01Min)/mf01Max;
-			mf02Rng = (mf02Max-mf02Min)/mf02Max;
-			mf03Rng = (mf03Max-mf03Min)/mf03Max;
+			mf01Avg = (float)mf01Sum/mfCount;
+			mf02Avg = (float)mf02Sum/mfCount;
+			mf03Avg = (float)mf03Sum/mfCount;
+			mf01Rng = (float)(mf01Max-mf01Min)/mf01Max;
+			mf02Rng = (float)(mf02Max-mf02Min)/mf02Max;
+			mf03Rng = (float)(mf03Max-mf03Min)/mf03Max;
+			
+//			if (mf01Max != mf01Min) {
+//			System.out.println("Max " + mf01Max);
+//			System.out.println("Min " + mf01Min);
+//			System.out.println("Range " + mf01Rng);
+//			System.out.println("Avg " + mf01Avg);
+//			}
+			mf01Max = 0;
+			mf02Max = 0;
+			mf03Max = 0;
+			mf01Min = Long.MAX_VALUE;
+			mf02Min = Long.MAX_VALUE;
+			mf03Min = Long.MAX_VALUE;
+			mf01Sum = 0;
+			mf02Sum = 0;
+			mf03Sum = 0;
+			mfCount = 0;
 			
 			manageViolationWindow();
 			
@@ -143,18 +161,22 @@ public class Query2 {
 			 
 			 ++powerCounter;
 			 if(powerCounter == 60) {
-				 outputPowerData();
+				 if (store || display)
+					 outputPowerData();
+				 if (verbose)
+					 System.out.println("Query2 power data output. Timestamp: " + ts);
 				 powerCounter = 0;
 			 }
  
 			 
 		
 	}
+	
 	private void outputPowerData() {
 		// Write the new address book back to disk.
 		try {
 			//TODO file name ??
-			FileOutputStream outputFile = new FileOutputStream("tempCPower");
+			FileOutputStream outputFile = new FileOutputStream("tempCPower",true);
 
 
 			CPower.Builder oPower= CPower.newBuilder();
@@ -204,13 +226,17 @@ public class Query2 {
 		if (violationWindow > 0) {
 			if (violationBuffer.isEmpty()) {
 				for(int i = 0; i < 20; i++) {
+					if (twentySeconds[(i+bufferPointer)%20] != null)
 					violationBuffer.add(twentySeconds[(i+bufferPointer)%20]);
 				}
 			}
 			violationBuffer.add(currentSecondBuffer);
 			--violationWindow;
 			if (violationWindow == 0) {
-				outputRawData();
+				if (store || display)
+					outputRawData();
+				if (verbose)
+					 System.out.println("Query2 raw data output. Timestamp: " + ts);
 				violationBuffer.clear();
 			}
 		}
@@ -218,9 +244,13 @@ public class Query2 {
 	}
 
 	public void operator4 () {
+		//System.out.println("Ranges: " + mf02Rng+" , " + mf02Rng+" , " +mf03Rng);
 		if(mf01Rng > 0.3 || mf02Rng > 0.3 || mf03Rng > 0.3) {
 			violationWindow = 70;
-			outputViolation();
+			if (store || display)
+				outputViolation();
+			if (verbose)
+				 System.out.println("Query2 violation. Timestamp: " + ts);
 		}
 	}
 	
@@ -229,11 +259,20 @@ public class Query2 {
 		BufferedWriter bw = null;
 		try {
 			bw = new BufferedWriter(new FileWriter("tempRawData", true));
-			bw.write("New Dump");
+			bw.write("New Voilation buffer dump");
 			bw.newLine();
 			//Check if this looks good 
-			while(violationBuffer.size()>0){
-				bw.write(violationBuffer.toString());
+			ListIterator<OneSecondBuffer> itr = violationBuffer.listIterator(); 
+			OneSecondBuffer oneSec;
+			String listString = " Values are in the format mf01, mf02 , mf03, ts \n";
+			while(itr.hasNext())
+			{
+				oneSec = itr.next();
+				for ( int i = 0; i < oneSec.mf01Buffer.size(); ++i )
+				{
+					listString += oneSec.mf01Buffer.get(i) + "\t" + oneSec.mf02Buffer.get(i) + "\t" + oneSec.mf03Buffer.get(i) +"\t"+ oneSec.tsBuffer.get(i)+"\n";
+				}
+				bw.write(listString);
 			}
 			bw.flush();
 		} catch (IOException ioe) {
@@ -256,7 +295,7 @@ public class Query2 {
 		// Write the new address book back to disk.
 		try {
 			//TODO file name ??
-			FileOutputStream outputFile = new FileOutputStream("tempVoilation");
+			FileOutputStream outputFile = new FileOutputStream("tempVoilation",true);
 
 
 			CViolation.Builder oViolation= CViolation.newBuilder();
@@ -267,6 +306,7 @@ public class Query2 {
 			oViolation.setMf02Rng(mf02Rng);
 			oViolation.setMf03Avg(mf03Avg);
 			oViolation.setMf03Rng(mf03Rng);
+			oViolation.build().writeDelimitedTo(outputFile);
 			outputFile.close();
 
 		} catch (FileNotFoundException e) {

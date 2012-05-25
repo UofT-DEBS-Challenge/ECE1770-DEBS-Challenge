@@ -22,22 +22,29 @@ import debs.challenge.msg.CManufacturingMessages.CDataPoint;
 
 public class CSimpleServerManufacturing extends SimpleChannelHandler {
 
-	private long modulo = 1L, time = 0L;
-	private int count = 0, repeat = 1;
-	private long latency = 0L;
-	private boolean reset = true;
-
+//	private long i = 0;
+	
+	private boolean store = false;
+	private boolean display = false;
+	private boolean verbose = false;
 	private Query1 q1;
 	private Query2 q2;
 	
 	private Logger logger = Logger.getLogger(CSimpleServerManufacturing.class
 			.getCanonicalName());
 
-	public CSimpleServerManufacturing(final InetSocketAddress sa, final long mod, final int repeat) {
-		q1 = new Query1();
-		q2 = new Query2();
-		modulo = mod;
-		this.repeat = repeat;
+	public CSimpleServerManufacturing(final InetSocketAddress sa, final int mode, int v) {
+		if (mode == 1 || mode == 3) {
+			store = true;
+		}
+		if (mode == 2 || mode == 3) {
+			display = true;
+		} 
+		if (v > 0 )
+			verbose = true;
+		q1 = new Query1(store,display,verbose);
+		q2 = new Query2(store,display,verbose);
+
 		new CTCPPacketReceiver(sa, this, CDataPoint.getDefaultInstance());
 		logger.info("Started server @ "+sa.getAddress()+":" + sa.getPort());
 //		logger.info("Started server @ "+sa.getAddress()+":" + sa.getPort() + ". Printing every " + modulo + " message." );	
@@ -48,7 +55,19 @@ public class CSimpleServerManufacturing extends SimpleChannelHandler {
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		new CSimpleServerManufacturing(new InetSocketAddress(args[0], Integer.parseInt(args[1])), Long.parseLong(args[2]), Integer.parseInt(args[3]));
+		if(args.length == 4 ) {
+			new CSimpleServerManufacturing(new InetSocketAddress(args[0], Integer.parseInt(args[1])), Integer.parseInt(args[2]), Integer.parseInt(args[3]));
+		}else {
+			//help message
+			System.out.println("Usage:- java -jar BINARYNAME DATA_GENERATOR_IP_ADDRESS PORT OPERATION_MODE VERBOSE_ON");
+			System.out.println("Example: java -jar debsServer.jar localhost 8090 1 1");
+			System.out.println("Available operation modes:");
+			System.out.println("0 - Processing only");
+			System.out.println("1 - Store to files only");
+			System.out.println("2 - Send to GUI only");
+			System.out.println("3 - Store to files and send to GUI");
+		}
+		
 	}
 
 	/*
@@ -77,8 +96,6 @@ public class CSimpleServerManufacturing extends SimpleChannelHandler {
 	public void channelConnected(ChannelHandlerContext ctx, ChannelStateEvent e) {
 		logger.info("Client connected: " + ctx.getChannel().getRemoteAddress()
 				+ " :> " + ctx.getChannel().getLocalAddress());
-		q1 = new Query1();
-		q2 = new Query2();
 	}
 
 	/*
@@ -112,44 +129,13 @@ public class CSimpleServerManufacturing extends SimpleChannelHandler {
 //			System.out.println("Found a 1 in bm05");
 //		if(measurement.getBm08())
 //			System.out.println("Found a 1 in bm08");
-//		try {	
-		
-		if(count == 0){
-			time = System.nanoTime();
-		}
-	
-		count++;
-		long start = System.nanoTime();
-		for(int i = 0; i<repeat;i++){
-		q1.evaluate(measurement);
-		q2.evaluate(measurement);
-		}
-		long delay = System.nanoTime() - start;
-		latency += delay;
-		
-		if(count % modulo == 0 && reset){
-			long elapsed = System.nanoTime() - time;
-			System.out.println("Average latency: " + (latency/count) + ", Throughput: " + count + ", Elapsed: " + elapsed);
-			count = 0;
-			latency = 0;
-			reset = false;
-		}
-		
+//		try {
+			q1.evaluate(measurement);
+			q2.evaluate(measurement);
 //		} catch (Exception ex) {
 //			ex.printStackTrace();
 //		}
-//		if (++i % modulo == 0) {
-//			
-//			CDataPoint measurement = (CDataPoint) e.getMessage();
-//			/*Navneets custom defined method here */
-//			
-//			
-//			/*logger.info("CFullMeasurement: "
-//					+ measurement.toString().replaceAll("\n", "; ")); */
-//			/*		logger.info("CFullMeasurement: "
-//			+ measurement.getMf01());*/    			
-//			
-//						}
+
 	}
 
 	
