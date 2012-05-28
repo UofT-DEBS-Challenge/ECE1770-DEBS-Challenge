@@ -165,14 +165,17 @@ public class Query1 {
 		if (tmpDelta > min * 1.01) {
 			if (store || display)
 				outputAlarm(opCode);
-			if (verbose)
+			if (verbose) {
 				System.out.println("Query1 Violation. Timestamp: " + ts);
+				System.out.println("Increase: " + (float)tmpDelta / min+ "%. Operator no " + opCode);
+			}
 		}
 
 		if (store || display)
 			outputPlot(sr.getSlope(), sr.getIntercept(), opCode);
-		if (verbose)
-			System.out.println("Query1 plotting. Timestamp: " + ts + " slope: " + sr.getSlope() + " intercept: " + sr.getIntercept());
+		if (verbose) {
+			System.out.println("Query1 plotting. Timestamp: " + ts + " slope: " + sr.getSlope() + " intercept: " + sr.getIntercept() + " operator: " + opCode);
+		}
 	}
 
 	private void outputAlarm(int opCode) {

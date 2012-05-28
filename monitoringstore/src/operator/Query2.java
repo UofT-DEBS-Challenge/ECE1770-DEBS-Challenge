@@ -163,8 +163,12 @@ public class Query2 {
 			 if(powerCounter == 60) {
 				 if (store || display)
 					 outputPowerData();
-				 if (verbose)
+				 if (verbose) {
 					 System.out.println("Query2 power data output. Timestamp: " + ts);
+					 System.out.println("First value mf01pwr: " + mf01pwr[0]);
+					 System.out.println("First value mf02pwr: " + mf02pwr[0]);
+					 System.out.println("First value mf03pwr: " + mf03pwr[0]);
+				 }
 				 powerCounter = 0;
 			 }
  
@@ -236,7 +240,7 @@ public class Query2 {
 				if (store || display)
 					outputRawData();
 				if (verbose)
-					 System.out.println("Query2 raw data output. Timestamp: " + ts);
+					 System.out.println("Query2 raw data output. " + violationBuffer.size() + " seconds. Timestamp: " + ts);
 				violationBuffer.clear();
 			}
 		}
@@ -249,8 +253,12 @@ public class Query2 {
 			violationWindow = 70;
 			if (store || display)
 				outputViolation();
-			if (verbose)
+			if (verbose) {
 				 System.out.println("Query2 violation. Timestamp: " + ts);
+				 System.out.println("Range mf01: " + mf01Rng);
+				 System.out.println("Range mf02: " + mf02Rng);
+				 System.out.println("Range mf03: " + mf03Rng);
+			}
 		}
 	}
 	
