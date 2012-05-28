@@ -66,6 +66,9 @@ public class CSimpleServerManufacturing extends SimpleChannelHandler {
 			System.out.println("1 - Store to files only");
 			System.out.println("2 - Send to GUI only");
 			System.out.println("3 - Store to files and send to GUI");
+			System.out.println("Available verbose modes:");
+			System.out.println("0 - quiet");
+			System.out.println("1 - verbose");
 		}
 		
 	}
@@ -96,6 +99,8 @@ public class CSimpleServerManufacturing extends SimpleChannelHandler {
 	public void channelConnected(ChannelHandlerContext ctx, ChannelStateEvent e) {
 		logger.info("Client connected: " + ctx.getChannel().getRemoteAddress()
 				+ " :> " + ctx.getChannel().getLocalAddress());
+		q1 = new Query1(store,display,verbose);
+		q2 = new Query2(store,display,verbose);
 	}
 
 	/*

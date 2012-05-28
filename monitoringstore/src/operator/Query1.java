@@ -166,13 +166,13 @@ public class Query1 {
 			if (store || display)
 				outputAlarm(opCode);
 			if (verbose)
-				System.out.println("Query2 Violation. Timestamp: " + ts);
+				System.out.println("Query1 Violation. Timestamp: " + ts);
 		}
 
 		if (store || display)
 			outputPlot(sr.getSlope(), sr.getIntercept(), opCode);
 		if (verbose)
-			System.out.println("Query2 plotting. Timestamp: " + ts + " slope: " + sr.getSlope() + " intercept: ");
+			System.out.println("Query1 plotting. Timestamp: " + ts + " slope: " + sr.getSlope() + " intercept: " + sr.getIntercept());
 	}
 
 	private void outputAlarm(int opCode) {

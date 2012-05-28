@@ -42,14 +42,15 @@ public class SyntheticEvaluator {
 			SyntheticEvaluator se = new SyntheticEvaluator();
 		
 			int runtime = Integer.parseInt(args[0]);
-			//Query2 q2 = new Query2(true, false, true);
-			Query1 q1 = new Query1(true, false, true);
+			Query2 q2 = new Query2(false, false, true);
+			Query1 q1 = new Query1(false, false, true);
 			for (int i = 0; i < runtime; i++) { 
 				//System.out.println("Frequencies: " + MF01ErrorFrequency);
 				
 				//Thread.sleep(10);
 				CDataPoint measurement = se.generateMeasurement();
 				q1.evaluate(measurement);
+				q2.evaluate(measurement);
 			}
 		} else {
 			System.out.println("Necessary parameters: number of events in test.");
